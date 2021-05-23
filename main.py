@@ -1,3 +1,4 @@
+from typing import Union
 from random import choice
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Updater, CommandHandler, CallbackContext
@@ -34,7 +35,7 @@ GAME_KEYBOARD_MARKUP = InlineKeyboardMarkup(GAME_KEYBOARD)
 ALL_WORDS = Session().query(Word).all()
 
 
-def start_handler(update: Update, _: CallbackContext) -> None:
+def start_handler(update: Update, _: CallbackContext) -> MAIN_MENU_STATE:
     update.message.reply_text('Привет! Этот бот поможет тебе подготовиться'
                               'к заданию 4 ЕГЭ по русскому языку.',
                               reply_markup=MAIN_MENU_KEYBOARD_MARKUP)
@@ -42,8 +43,8 @@ def start_handler(update: Update, _: CallbackContext) -> None:
     return MAIN_MENU_STATE
 
 
-def main_menu_callback_handler(update: Update,
-                               context: CallbackContext) -> None:
+def main_menu_callback_handler(update: Update, context: CallbackContext)\
+        -> Union[MAIN_MENU_STATE, IN_GAME_STATE]:
     query = update.callback_query
     query.answer()
 
@@ -57,7 +58,8 @@ def main_menu_callback_handler(update: Update,
     return MAIN_MENU_STATE
 
 
-def in_game_callback_handler(update: Update, context: CallbackContext) -> None:
+def in_game_callback_handler(update: Update, context: CallbackContext)\
+        -> Union[MAIN_MENU_STATE, IN_GAME_STATE]:
     query = update.callback_query
     query.answer()
 
