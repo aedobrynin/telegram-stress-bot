@@ -37,7 +37,8 @@ ALL_WORDS = Session().query(Word).all()
 
 def start_handler(update: Update, _: CallbackContext) -> MAIN_MENU_STATE:
     update.message.reply_text('Привет! Этот бот поможет тебе подготовиться'
-                              'к заданию 4 ЕГЭ по русскому языку.',
+                              'к заданию 4 ЕГЭ по русскому языку.\n'
+                              'Обо всех ошибках сообщать @rov01yp.',
                               reply_markup=MAIN_MENU_KEYBOARD_MARKUP)
 
     return MAIN_MENU_STATE
