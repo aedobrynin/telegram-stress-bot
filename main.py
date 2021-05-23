@@ -32,7 +32,7 @@ GAME_KEYBOARD = [
 GAME_KEYBOARD_MARKUP = InlineKeyboardMarkup(GAME_KEYBOARD)
 
 ALL_WORDS = Session().query(Word).all()
-print(dir(ALL_WORDS[0]), ALL_WORDS[0].word)
+
 
 def start_handler(update: Update, _: CallbackContext) -> None:
     update.message.reply_text('Привет! Этот бот поможет тебе подготовиться'
@@ -42,7 +42,8 @@ def start_handler(update: Update, _: CallbackContext) -> None:
     return MAIN_MENU_STATE
 
 
-def main_menu_callback_handler(update: Update, context: CallbackContext) -> None:
+def main_menu_callback_handler(update: Update,
+                               context: CallbackContext) -> None:
     query = update.callback_query
     query.answer()
 
@@ -58,41 +59,58 @@ def main_menu_callback_handler(update: Update, context: CallbackContext) -> None
 
 def in_game_callback_handler(update: Update, context: CallbackContext) -> None:
     query = update.callback_query
+    query.answer()
 
     if 'play_variant' in context.chat_data:
-        if query.data == context.chat_data['play_variant'][1]:
+        if query.data == context.chat_data['play_variant']["stress_state"]:
             context.chat_data['score'] += 1
         else:
-            query.edit_message_text(f'Неправильно! Правильный вариант ударения: {context.chat_data["current_word"].word}\nВаш итоговый счёт: {context.chat_data["score"]}.',
-                    reply_markup=MAIN_MENU_KEYBOARD_MARKUP)
+            query.edit_message_text(
+                'Неправильно! Правильный вариант '
+                f'ударения: {context.chat_data["current_word"].word}.\n'
+                f'Ваш итоговый счёт: {context.chat_data["score"]}.',
+                reply_markup=MAIN_MENU_KEYBOARD_MARKUP,
+            )
 
             del context.chat_data['score']
             del context.chat_data['not_played_words']
             del context.chat_data['play_variant']
             del context.chat_data['current_word']
             return MAIN_MENU_STATE
-        query.answer()
     else:
         #  Straight from the main menu
         context.chat_data['not_played_words'] = ALL_WORDS.copy()
         context.chat_data['score'] = 0
 
     if not context.chat_data['not_played_words']:
-        query.edit_message_text(f'Поздравляем! Вы ответили на все вопросы правильно!\nВаш итоговый счёт: {context.chat_data["score"]}',
-                reply_markup=MAIN_MENU_KEYBOARD_MARKUP)
+        query.edit_message_text(
+            'Поздравляем! Вы ответили на все вопросы правильно!\n'
+            f'Ваш итоговый счёт: {context.chat_data["score"]}.',
+            reply_markup=MAIN_MENU_KEYBOARD_MARKUP,
+        )
+
         del context.chat_data['score']
         del context.chat_data['not_played_words']
         del context.chat_data['play_variant']
         del context.chat_data['current_word']
         return MAIN_MENU_STATE
 
-    context.chat_data['current_word'] = utils.get_word(context.chat_data['not_played_words'])
+    context.chat_data['current_word'] =\
+        utils.get_word(context.chat_data['not_played_words'])
     context.chat_data['play_variant'] = choice([
-        (context.chat_data['current_word'].word, GOOD_STRESS),
-        (context.chat_data['current_word'].bad_variant, BAD_STRESS),
+        {
+            'word': context.chat_data['current_word'].word,
+            'stress_state': GOOD_STRESS
+        },
+        {
+            'word': context.chat_data['current_word'].bad_variant,
+            'stress_state': BAD_STRESS
+        },
     ])
     query.edit_message_text(
-        f'Очков: {context.chat_data["score"]}\nПравильно ли стоит ударение в слове: "{context.chat_data["play_variant"][0]}"?',
+        f'Очков: {context.chat_data["score"]}.\n'
+        'Правильно ли стоит ударение в слове: '
+        f'"{context.chat_data["play_variant"]["word"]}"?',
         reply_markup=GAME_KEYBOARD_MARKUP
     )
     return IN_GAME_STATE
