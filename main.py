@@ -108,7 +108,7 @@ def in_game_callback_handler(update: Update, context: CallbackContext)\
         #  Straight from the main menu
         session = Session()
 
-        user = session.query(User).get(user.id)
+        user = session.query(User).get(query.from_user.id)
         if user is None:
             user = User(query.from_user.id, query.from_user.first_name)
             session.add(user)
