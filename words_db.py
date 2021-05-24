@@ -3,12 +3,12 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
 
-engine = create_engine('sqlite:///./databases/words.sqlite', echo=True)
-Base = declarative_base()
-Session = sessionmaker(bind=engine)
+words_engine = create_engine('sqlite:///./databases/words.sqlite', echo=True)
+WordsBase = declarative_base()
+WordsSession = sessionmaker(bind=words_engine)
 
 
-class Word(Base):
+class Word(WordsBase):
     __tablename__ = 'words'
     id = Column(Integer, primary_key=True)
     word = Column(String, nullable=False)
@@ -28,4 +28,4 @@ class Word(Base):
         return f"<Word({self.id}, {self.word}, {self.bad_variant}, {self.success_count}, {self.total_count})>"
 
 
-Base.metadata.create_all(engine)
+WordsBase.metadata.create_all(words_engine)

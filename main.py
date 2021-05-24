@@ -4,12 +4,12 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Updater, CommandHandler, CallbackContext
 from telegram.ext import CallbackQueryHandler, ConversationHandler
 import utils
-from databases import Session, Word
+from words_db import WordsSession, Word
 
 
 MAIN_MENU_STATE, IN_GAME_STATE, START_GAME,\
     SHOW_STATS, SHOW_RATING, GOOD_STRESS, BAD_STRESS = map(str, range(7))
-TELEGRAM_BOT_TOKEN = ""
+TELEGRAM_BOT_TOKEN = ''
 
 
 MAIN_MENU_KEYBOARD = [
@@ -32,7 +32,7 @@ GAME_KEYBOARD = [
 ]
 GAME_KEYBOARD_MARKUP = InlineKeyboardMarkup(GAME_KEYBOARD)
 
-ALL_WORDS = Session().query(Word).all()
+ALL_WORDS = WordsSession().query(Word).all()
 
 
 def start_handler(update: Update, _: CallbackContext) -> MAIN_MENU_STATE:
@@ -70,7 +70,7 @@ def in_game_callback_handler(update: Update, context: CallbackContext)\
         else:
             query.edit_message_text(
                 'Неправильно! Правильный вариант '
-                f'ударения: {context.chat_data["current_word"].word}.\n'
+                f'ударения: "{context.chat_data["current_word"].word}".\n'
                 f'Ваш итоговый счёт: {context.chat_data["score"]}.',
                 reply_markup=MAIN_MENU_KEYBOARD_MARKUP,
             )

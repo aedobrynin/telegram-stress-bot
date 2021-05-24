@@ -1,5 +1,5 @@
 from random import sample
-from databases import Word
+from words_db import Word
 
 
 def get_word(words: set[Word]) -> Word:
