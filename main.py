@@ -134,7 +134,7 @@ def in_game_callback_handler(update: Update, context: CallbackContext)\
             query.edit_message_text(
                 'Неправильно! Правильный вариант '
                 f'ударения: <b>"{word.word}"</b>.\n'
-                f'<b>Ваш итоговый счёт:</b> {score}.',
+                f'<b>Ваш итоговый счёт:</b> {score}🏅',
                 parse_mode=ParseMode.HTML,
                 reply_markup=MAIN_MENU_KEYBOARD_MARKUP,
             )
