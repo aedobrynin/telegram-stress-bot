@@ -15,11 +15,11 @@ TELEGRAM_BOT_TOKEN = ''
 
 MAIN_MENU_KEYBOARD = [
     [
-        InlineKeyboardButton('Начать игру🏁', callback_data=START_GAME),
-        InlineKeyboardButton('Статистика📊', callback_data=SHOW_STATS),
+        InlineKeyboardButton('Начать игру 🏁', callback_data=START_GAME),
+        InlineKeyboardButton('Статистика 📊', callback_data=SHOW_STATS),
     ],
     [
-        InlineKeyboardButton('Рейтинг🏆', callback_data=SHOW_RATING),
+        InlineKeyboardButton('Рейтинг 🏆', callback_data=SHOW_RATING),
     ],
 ]
 MAIN_MENU_KEYBOARD_MARKUP = InlineKeyboardMarkup(MAIN_MENU_KEYBOARD)
@@ -27,8 +27,8 @@ MAIN_MENU_KEYBOARD_MARKUP = InlineKeyboardMarkup(MAIN_MENU_KEYBOARD)
 
 GAME_KEYBOARD = [
     [
-        InlineKeyboardButton('Правильно✔️', callback_data=GOOD_STRESS),
-        InlineKeyboardButton('Неправильно❌', callback_data=BAD_STRESS),
+        InlineKeyboardButton('Правильно ✔️', callback_data=GOOD_STRESS),
+        InlineKeyboardButton('Неправильно ❌', callback_data=BAD_STRESS),
     ],
 ]
 GAME_KEYBOARD_MARKUP = InlineKeyboardMarkup(GAME_KEYBOARD)
@@ -92,7 +92,7 @@ def main_menu_callback_handler(update: Update, context: CallbackContext)\
             message += '\n'
 
         if best_players:
-            message += '⭐<b>Топ игроков</b>⭐\n'
+            message += '⭐ <b>Топ игроков</b> ⭐\n'
             for (i, (name, score)) in enumerate(best_players):
                 if i == 0:
                     message += '🥇'
