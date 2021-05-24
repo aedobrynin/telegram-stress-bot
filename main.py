@@ -40,7 +40,7 @@ __TMP_SESS.close()
 
 
 def start_handler(update: Update, _: CallbackContext) -> MAIN_MENU_STATE:
-    update.message.reply_text('Привет! Этот бот поможет тебе подготовиться'
+    update.message.reply_text('Привет! Этот бот поможет тебе подготовиться '
                               'к заданию 4 ЕГЭ по русскому языку.\n'
                               'Обо всех ошибках сообщать @rov01yp.',
                               reply_markup=MAIN_MENU_KEYBOARD_MARKUP)
@@ -56,7 +56,26 @@ def main_menu_callback_handler(update: Update, context: CallbackContext)\
     if query.data == START_GAME:
         return in_game_callback_handler(update, context)
     if query.data == SHOW_STATS:
-        query.edit_message_text('Показываю статистику!',
+        session = Session()
+        user = session.query(User).get(query.from_user.id)
+
+        message: str
+        if user is None:
+            message = 'Вы не сыграли ни одной игры.'
+        else:
+            message = (f'Рекорд: {user.best_score} очков.\n'
+                       f'Всего игр: {user.total_games}.\n')
+
+            top_mistakes =\
+                utils.get_top_five_locally_mistaken(user.get_stats())
+            if top_mistakes:
+                message += 'Ваши самые частые ошибки:\n'
+                for (i, (word, percent, total_cnt)) in enumerate(top_mistakes):
+                    message += (f'{i + 1}) Слово "{word}" — {percent}% '
+                                f'правильно, {total_cnt} всего.\n')
+
+        session.close()
+        query.edit_message_text(message,
                                 reply_markup=MAIN_MENU_KEYBOARD_MARKUP)
     elif query.data == SHOW_RATING:
         query.edit_message_text('Показываю рейтинг!',
