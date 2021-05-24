@@ -64,7 +64,7 @@ def main_menu_callback_handler(update: Update, context: CallbackContext)\
             message = 'Вы не сыграли ни одной игры.'
         else:
             message = (f'Рекорд: {user.best_score} очков.\n'
-                       f'Всего игр: {user.total_games}.\n')
+                       f'Всего игр: {user.total_games}.\n\n')
 
             top_mistakes =\
                 utils.get_top_five_locally_mistaken(user.get_stats())
@@ -78,7 +78,23 @@ def main_menu_callback_handler(update: Update, context: CallbackContext)\
         query.edit_message_text(message,
                                 reply_markup=MAIN_MENU_KEYBOARD_MARKUP)
     elif query.data == SHOW_RATING:
-        query.edit_message_text('Показываю рейтинг!',
+        top_mistakes = utils.get_top_five_globally_mistaken()
+        best_players = utils.get_best_players()
+
+        message = ""
+        if top_mistakes:
+            message += 'Самые популярные ошибки:\n'
+            for (i, (word, percent, total_cnt)) in enumerate(top_mistakes):
+                message += (f'{i + 1}) Слово "{word}" — {percent}% '
+                            f'правильно, {total_cnt} всего.\n')
+            message += '\n'
+
+        if best_players:
+            message += 'Топ игроков:\n'
+            for (i, (name, score)) in enumerate(best_players):
+                message += f'{i + 1}) {name} — {score}\n'
+
+        query.edit_message_text(message,
                                 reply_markup=MAIN_MENU_KEYBOARD_MARKUP)
 
     return MAIN_MENU_STATE

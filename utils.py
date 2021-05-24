@@ -1,8 +1,8 @@
 from random import sample
 from typing import Set, Tuple, List
-from sqlalchemy import Float
+from sqlalchemy import Float, desc
 from sqlalchemy.sql.expression import cast
-from models import Session, Word
+from models import Session, Word, User
 
 
 def get_word_id(ids: Set[int]) -> int:
@@ -24,10 +24,10 @@ def get_top_five_globally_mistaken() -> List[Tuple[str, float, int]]:
 
     session.close()
 
-    ret = []
+    ret_val = []
     for (word, succ_cnt, tot_cnt) in query:
-        ret.append((word, round(100 * succ_cnt / tot_cnt, 2), tot_cnt))
-    return ret
+        ret_val.append((word, round(100 * succ_cnt / tot_cnt, 2), tot_cnt))
+    return ret_val
 
 
 def get_top_five_locally_mistaken(word_stats: dict)\
@@ -48,3 +48,12 @@ def get_top_five_locally_mistaken(word_stats: dict)\
     session.close()
 
     return ret_val
+
+
+def get_best_players() -> List[Tuple[str, int]]:
+    session = Session()
+    players =\
+        session.query(User.name, User.best_score)\
+               .order_by(desc(User.best_score)).limit(5).all()
+    session.close()
+    return players
