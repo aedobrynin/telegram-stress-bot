@@ -19,6 +19,7 @@ def get_top_five_globally_mistaken() -> List[Tuple[str, float, int]]:
         .filter(Word.total_count >= 1)\
         .order_by(cast(Word.success_count, Float) /
                   cast(Word.total_count, Float))\
+        .order_by(desc(Word.total_count))\
         .limit(5)\
         .all()
 
@@ -34,7 +35,7 @@ def get_top_five_locally_mistaken(word_stats: dict)\
         -> List[Tuple[str, float, int]]:
     items =\
         list(item for item in word_stats.items() if item[1][0] != item[1][1])
-    items.sort(key=lambda x: x[1][0] / x[1][1])
+    items.sort(key=lambda x: (1 - x[1][0] / x[1][1], x[1][1]), reverse=True)
 
     session = Session()
 
