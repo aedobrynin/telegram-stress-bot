@@ -34,7 +34,8 @@ GAME_KEYBOARD_MARKUP = InlineKeyboardMarkup(GAME_KEYBOARD)
 
 
 __TMP_SESS = Session()
-WORDS = dict((word.id, (word.word, word.bad_variant)) for word in __TMP_SESS.query(Word).all())
+WORDS = dict((word.id, (word.word, word.bad_variant))
+             for word in __TMP_SESS.query(Word).all())
 __TMP_SESS.close()
 
 
@@ -83,11 +84,10 @@ def in_game_callback_handler(update: Update, context: CallbackContext)\
             session.close()
         else:
             score = context.chat_data['score']
-            right_stress = WORDS[context.chat_data['current_word_id']][0]
 
             query.edit_message_text(
                 'Неправильно! Правильный вариант '
-                f'ударения: "{right_stress}".\n'
+                f'ударения: "{word.word}".\n'
                 f'Ваш итоговый счёт: {score}.',
                 reply_markup=MAIN_MENU_KEYBOARD_MARKUP,
             )
@@ -107,14 +107,13 @@ def in_game_callback_handler(update: Update, context: CallbackContext)\
     else:
         #  Straight from the main menu
         session = Session()
-        user = query.from_user
 
-        db_user = session.query(User).get(user.id)
-        if db_user is None:
-            db_user = User(user.id, user.first_name)
-            session.add(db_user)
+        user = session.query(User).get(user.id)
+        if user is None:
+            user = User(query.from_user.id, query.from_user.first_name)
+            session.add(user)
 
-        db_user.total_games += 1
+        user.total_games += 1
         session.commit()
         session.close()
 
@@ -140,7 +139,8 @@ def in_game_callback_handler(update: Update, context: CallbackContext)\
         del context.chat_data['current_word_id']
         return MAIN_MENU_STATE
 
-    current_word_id = utils.get_word_id(context.chat_data['not_played_word_ids'])
+    current_word_id =\
+        utils.get_word_id(context.chat_data['not_played_word_ids'])
     context.chat_data['current_word_id'] = current_word_id
     context.chat_data['play_variant'] = choice([
         {
