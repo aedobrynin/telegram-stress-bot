@@ -1,6 +1,7 @@
 from typing import Union
 from random import choice
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import ParseMode
 from telegram.ext import Updater, CommandHandler, CallbackContext
 from telegram.ext import CallbackQueryHandler, ConversationHandler
 import utils
@@ -14,11 +15,11 @@ TELEGRAM_BOT_TOKEN = ''
 
 MAIN_MENU_KEYBOARD = [
     [
-        InlineKeyboardButton('Начать игру', callback_data=START_GAME),
-        InlineKeyboardButton('Статистика', callback_data=SHOW_STATS),
+        InlineKeyboardButton('Начать игру🏁', callback_data=START_GAME),
+        InlineKeyboardButton('Статистика📊', callback_data=SHOW_STATS),
     ],
     [
-        InlineKeyboardButton('Рейтинг', callback_data=SHOW_RATING),
+        InlineKeyboardButton('Рейтинг🏆', callback_data=SHOW_RATING),
     ],
 ]
 MAIN_MENU_KEYBOARD_MARKUP = InlineKeyboardMarkup(MAIN_MENU_KEYBOARD)
@@ -26,8 +27,8 @@ MAIN_MENU_KEYBOARD_MARKUP = InlineKeyboardMarkup(MAIN_MENU_KEYBOARD)
 
 GAME_KEYBOARD = [
     [
-        InlineKeyboardButton('Правильно', callback_data=GOOD_STRESS),
-        InlineKeyboardButton('Неправильно', callback_data=BAD_STRESS),
+        InlineKeyboardButton('Правильно✔️', callback_data=GOOD_STRESS),
+        InlineKeyboardButton('Неправильно❌', callback_data=BAD_STRESS),
     ],
 ]
 GAME_KEYBOARD_MARKUP = InlineKeyboardMarkup(GAME_KEYBOARD)
@@ -61,21 +62,22 @@ def main_menu_callback_handler(update: Update, context: CallbackContext)\
 
         message: str
         if user is None:
-            message = 'Вы не сыграли ни одной игры.'
+            message = 'Вы не сыграли ни одной игры'
         else:
-            message = (f'Рекорд: {user.best_score} очков.\n'
-                       f'Всего игр: {user.total_games}.\n\n')
+            message = (f'<b>Рекорд:</b> {user.best_score}🏅\n'
+                       f'<b>Всего игр:</b> {user.total_games}\n\n')
 
             top_mistakes =\
                 utils.get_top_five_locally_mistaken(user.get_stats())
             if top_mistakes:
-                message += 'Ваши самые частые ошибки:\n'
+                message += '<b>Ваши самые частые ошибки:</b>\n'
                 for (i, (word, percent, total_cnt)) in enumerate(top_mistakes):
                     message += (f'{i + 1}) Слово "{word}" — {percent}% '
                                 f'правильно, {total_cnt} всего.\n')
 
         session.close()
         query.edit_message_text(message,
+                                parse_mode=ParseMode.HTML,
                                 reply_markup=MAIN_MENU_KEYBOARD_MARKUP)
     elif query.data == SHOW_RATING:
         top_mistakes = utils.get_top_five_globally_mistaken()
@@ -83,18 +85,27 @@ def main_menu_callback_handler(update: Update, context: CallbackContext)\
 
         message = ""
         if top_mistakes:
-            message += 'Самые популярные ошибки:\n'
+            message += '<b>Самые популярные ошибки</b>\n'
             for (i, (word, percent, total_cnt)) in enumerate(top_mistakes):
                 message += (f'{i + 1}) Слово "{word}" — {percent}% '
                             f'правильно, {total_cnt} всего.\n')
             message += '\n'
 
         if best_players:
-            message += 'Топ игроков:\n'
+            message += '⭐<b>Топ игроков</b>⭐\n'
             for (i, (name, score)) in enumerate(best_players):
-                message += f'{i + 1}) {name} — {score}\n'
+                if i == 0:
+                    message += '🥇'
+                elif i == 1:
+                    message += '🥈'
+                elif i == 2:
+                    message += '🥉'
+                else:
+                    message += f'{i + 1})'
+                message += f' {name} — {score}🏅\n'
 
         query.edit_message_text(message,
+                                parse_mode=ParseMode.HTML,
                                 reply_markup=MAIN_MENU_KEYBOARD_MARKUP)
 
     return MAIN_MENU_STATE
@@ -122,8 +133,9 @@ def in_game_callback_handler(update: Update, context: CallbackContext)\
 
             query.edit_message_text(
                 'Неправильно! Правильный вариант '
-                f'ударения: "{word.word}".\n'
-                f'Ваш итоговый счёт: {score}.',
+                f'ударения: <b>"{word.word}"</b>.\n'
+                f'<b>Ваш итоговый счёт:</b> {score}.',
+                parse_mode=ParseMode.HTML,
                 reply_markup=MAIN_MENU_KEYBOARD_MARKUP,
             )
 
@@ -157,8 +169,9 @@ def in_game_callback_handler(update: Update, context: CallbackContext)\
 
     if not context.chat_data['not_played_word_ids']:
         query.edit_message_text(
-            'Поздравляем! Вы ответили на все вопросы правильно!\n'
-            f'Ваш итоговый счёт: {context.chat_data["score"]}.',
+            '✨Поздравляем! Вы ответили на все вопросы правильно!✨\n'
+            f'<b>Ваш итоговый счёт:</b> {context.chat_data["score"]}🏅',
+            parse_mode=ParseMode.HTML,
             reply_markup=MAIN_MENU_KEYBOARD_MARKUP,
         )
 
@@ -188,10 +201,11 @@ def in_game_callback_handler(update: Update, context: CallbackContext)\
         },
     ])
     query.edit_message_text(
-        f'Очков: {context.chat_data["score"]}.\n'
+        f'<b>Счёт:</b> {context.chat_data["score"]}🏅\n'
         'Правильно ли стоит ударение в слове: '
-        f'"{context.chat_data["play_variant"]["word"]}"?',
-        reply_markup=GAME_KEYBOARD_MARKUP
+        f'<b>"{context.chat_data["play_variant"]["word"]}"</b>?',
+        parse_mode=ParseMode.HTML,
+        reply_markup=GAME_KEYBOARD_MARKUP,
     )
     return IN_GAME_STATE
 
