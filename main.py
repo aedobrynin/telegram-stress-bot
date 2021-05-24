@@ -58,7 +58,7 @@ def main_menu_callback_handler(update: Update, context: CallbackContext)\
     if query.data == SHOW_STATS:
         query.edit_message_text('Показываю статистику!',
                                 reply_markup=MAIN_MENU_KEYBOARD_MARKUP)
-    if query.data == SHOW_RATING:
+    elif query.data == SHOW_RATING:
         query.edit_message_text('Показываю рейтинг!',
                                 reply_markup=MAIN_MENU_KEYBOARD_MARKUP)
 
@@ -112,8 +112,8 @@ def in_game_callback_handler(update: Update, context: CallbackContext)\
         if user is None:
             user = User(query.from_user.id, query.from_user.first_name)
             session.add(user)
-
         user.total_games += 1
+
         session.commit()
         session.close()
 
