@@ -49,6 +49,14 @@ def start_handler(update: Update, _: CallbackContext) -> MAIN_MENU_STATE:
     return MAIN_MENU_STATE
 
 
+def restart_callback_handler(update: Update, context: CallbackContext) -> None:
+    query = update.callback_query
+    query.answer()
+    query.edit_message_text('Кажется, что произошёл перезапуск бота.\n'
+                            'Данные о текущей игре могли быть утрачены.\n'
+                            'Для продолжения работы введите команду /start')
+
+
 def main_menu_callback_handler(update: Update, context: CallbackContext)\
         -> Union[MAIN_MENU_STATE, IN_GAME_STATE]:
     query = update.callback_query
@@ -208,6 +216,8 @@ def main() -> None:
     updater = Updater(TELEGRAM_BOT_TOKEN)
     dispatcher = updater.dispatcher
 
+    restart_handler = CallbackQueryHandler(restart_callback_handler)
+
     main_conversation_handler = ConversationHandler(
         entry_points=[CommandHandler('start', start_handler)],
         states={
@@ -219,7 +229,9 @@ def main() -> None:
         fallbacks=[],
         allow_reentry=True,
     )
+
     dispatcher.add_handler(main_conversation_handler)
+    dispatcher.add_handler(restart_handler)
 
     updater.start_polling()
     updater.idle()
