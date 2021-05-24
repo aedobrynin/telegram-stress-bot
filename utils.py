@@ -1,6 +1,6 @@
 from random import sample
 from typing import Set, Tuple, List
-from sqlalchemy import Float, desc
+from sqlalchemy import Float
 from sqlalchemy.sql.expression import cast
 from models import Session, Word
 
@@ -17,8 +17,8 @@ def get_top_five_globally_mistaken() -> List[Tuple[str, float, int]]:
     query =\
         session.query(Word.word, Word.success_count, Word.total_count)\
         .filter(Word.total_count >= 1)\
-        .order_by(desc(1 - cast(Word.success_count, Float) /
-                       cast(Word.total_count, Float)))\
+        .order_by(cast(Word.success_count, Float) /
+                  cast(Word.total_count, Float))\
         .limit(5)\
         .all()
 
