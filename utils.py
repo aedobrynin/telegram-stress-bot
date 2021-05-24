@@ -1,10 +1,9 @@
 from random import sample
 from typing import Set
-from models import Word
 
 
-def get_word(words: Set[Word]) -> Word:
-    """Picks random word from set. Word is removed from the set."""
-    picked_word = sample(words, 1)[0]
-    words.remove(picked_word)
-    return picked_word
+def get_word_id(ids: Set[int]) -> int:
+    """Picks random word id from the set. The Id is removed from the set."""
+    picked_id = sample(ids, 1)[0]
+    ids.remove(picked_id)
+    return picked_id

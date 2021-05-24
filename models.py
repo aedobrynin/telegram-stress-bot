@@ -4,7 +4,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
 
-engine = create_engine('sqlite:///db.sqlite', echo=True)
+engine = create_engine('sqlite:///db.sqlite', echo=False)
 Base = declarative_base()
 Session = sessionmaker(bind=engine)
 
@@ -22,7 +22,7 @@ class Word(Base):
         return f'<Word({self.id}, {self.word}, {self.bad_variant}, '\
                 f'{self.success_count}, {self.total_count})>'
 
-    def update_stats(self, is_successful: bool):
+    def update_stats(self, is_successful: bool) -> None:
         self.total_count += 1
         if is_successful:
             self.success_count += 1
@@ -38,7 +38,7 @@ class User(Base):
     stats_by_word_id_json =\
         Column(String, server_default=text("'{}'"), nullable=False)
 
-    def __init__(self, id: int, name: str):
+    def __init__(self, id: int, name: str) -> None:
         self.id = id
         self.name = name
         self.total_games = 0

@@ -32,7 +32,10 @@ GAME_KEYBOARD = [
 ]
 GAME_KEYBOARD_MARKUP = InlineKeyboardMarkup(GAME_KEYBOARD)
 
-ALL_WORDS = Session().query(Word).all()
+
+__TMP_SESS = Session()
+WORDS = dict((word.id, (word.word, word.bad_variant)) for word in __TMP_SESS.query(Word).all())
+__TMP_SESS.close()
 
 
 def start_handler(update: Update, _: CallbackContext) -> MAIN_MENU_STATE:
@@ -67,9 +70,9 @@ def in_game_callback_handler(update: Update, context: CallbackContext)\
     query.answer()
 
     if 'play_variant' in context.chat_data:
-        word_id = context.chat_data['current_word'].id
         session = Session()
         user = session.query(User).get(query.from_user.id)
+        word_id = context.chat_data['current_word_id']
         word = session.query(Word).get(word_id)
 
         if query.data == context.chat_data['play_variant']['stress_state']:
@@ -77,12 +80,14 @@ def in_game_callback_handler(update: Update, context: CallbackContext)\
             user.update_stats(word_id, True)
             word.update_stats(True)
             session.commit()
+            session.close()
         else:
             score = context.chat_data['score']
+            right_stress = WORDS[context.chat_data['current_word_id']][0]
 
             query.edit_message_text(
                 'Неправильно! Правильный вариант '
-                f'ударения: "{context.chat_data["current_word"].word}".\n'
+                f'ударения: "{right_stress}".\n'
                 f'Ваш итоговый счёт: {score}.',
                 reply_markup=MAIN_MENU_KEYBOARD_MARKUP,
             )
@@ -91,11 +96,13 @@ def in_game_callback_handler(update: Update, context: CallbackContext)\
             user.update_stats(word_id, False)
             word.update_stats(False)
             session.commit()
+            session.close()
 
             del context.chat_data['score']
-            del context.chat_data['not_played_words']
+            del context.chat_data['not_played_word_ids']
             del context.chat_data['play_variant']
-            del context.chat_data['current_word']
+            del context.chat_data['current_word_id']
+
             return MAIN_MENU_STATE
     else:
         #  Straight from the main menu
@@ -109,11 +116,12 @@ def in_game_callback_handler(update: Update, context: CallbackContext)\
 
         db_user.total_games += 1
         session.commit()
+        session.close()
 
-        context.chat_data['not_played_words'] = ALL_WORDS.copy()
+        context.chat_data['not_played_word_ids'] = set(WORDS.keys())
         context.chat_data['score'] = 0
 
-    if not context.chat_data['not_played_words']:
+    if not context.chat_data['not_played_word_ids']:
         query.edit_message_text(
             'Поздравляем! Вы ответили на все вопросы правильно!\n'
             f'Ваш итоговый счёт: {context.chat_data["score"]}.',
@@ -124,22 +132,23 @@ def in_game_callback_handler(update: Update, context: CallbackContext)\
         user = session.query(User).get(query.from_user.id)
         user.update_best_score(score)
         session.commit()
+        session.close()
 
         del context.chat_data['score']
-        del context.chat_data['not_played_words']
+        del context.chat_data['not_played_word_ids']
         del context.chat_data['play_variant']
-        del context.chat_data['current_word']
+        del context.chat_data['current_word_id']
         return MAIN_MENU_STATE
 
-    context.chat_data['current_word'] =\
-        utils.get_word(context.chat_data['not_played_words'])
+    current_word_id = utils.get_word_id(context.chat_data['not_played_word_ids'])
+    context.chat_data['current_word_id'] = current_word_id
     context.chat_data['play_variant'] = choice([
         {
-            'word': context.chat_data['current_word'].word,
+            'word': WORDS[current_word_id][0],
             'stress_state': GOOD_STRESS
         },
         {
-            'word': context.chat_data['current_word'].bad_variant,
+            'word': WORDS[current_word_id][1],
             'stress_state': BAD_STRESS
         },
     ])
