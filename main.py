@@ -4,7 +4,7 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Updater, CommandHandler, CallbackContext
 from telegram.ext import CallbackQueryHandler, ConversationHandler
 import utils
-from words_db import WordsSession, Word
+from models import Session, Word, User
 
 
 MAIN_MENU_STATE, IN_GAME_STATE, START_GAME,\
@@ -32,7 +32,7 @@ GAME_KEYBOARD = [
 ]
 GAME_KEYBOARD_MARKUP = InlineKeyboardMarkup(GAME_KEYBOARD)
 
-ALL_WORDS = WordsSession().query(Word).all()
+ALL_WORDS = Session().query(Word).all()
 
 
 def start_handler(update: Update, _: CallbackContext) -> MAIN_MENU_STATE:
@@ -52,9 +52,11 @@ def main_menu_callback_handler(update: Update, context: CallbackContext)\
     if query.data == START_GAME:
         return in_game_callback_handler(update, context)
     if query.data == SHOW_STATS:
-        query.edit_message_text('Показываю статистику!')
+        query.edit_message_text('Показываю статистику!',
+                                reply_markup=MAIN_MENU_KEYBOARD_MARKUP)
     if query.data == SHOW_RATING:
-        query.edit_message_text('Показываю рейтинг!')
+        query.edit_message_text('Показываю рейтинг!',
+                                reply_markup=MAIN_MENU_KEYBOARD_MARKUP)
 
     return MAIN_MENU_STATE
 
@@ -65,15 +67,27 @@ def in_game_callback_handler(update: Update, context: CallbackContext)\
     query.answer()
 
     if 'play_variant' in context.chat_data:
-        if query.data == context.chat_data['play_variant']["stress_state"]:
+        word_id = context.chat_data['current_word'].id
+        session = Session()
+        user = session.query(User).get(query.from_user.id)
+
+        if query.data == context.chat_data['play_variant']['stress_state']:
             context.chat_data['score'] += 1
+            user.update_stats(word_id, True)
+            session.commit()
         else:
+            score = context.chat_data['score']
+
             query.edit_message_text(
                 'Неправильно! Правильный вариант '
                 f'ударения: "{context.chat_data["current_word"].word}".\n'
-                f'Ваш итоговый счёт: {context.chat_data["score"]}.',
+                f'Ваш итоговый счёт: {score}.',
                 reply_markup=MAIN_MENU_KEYBOARD_MARKUP,
             )
+
+            user.update_best_score(score)
+            user.update_stats(word_id, False)
+            session.commit()
 
             del context.chat_data['score']
             del context.chat_data['not_played_words']
@@ -82,6 +96,17 @@ def in_game_callback_handler(update: Update, context: CallbackContext)\
             return MAIN_MENU_STATE
     else:
         #  Straight from the main menu
+        session = Session()
+        user = query.from_user
+
+        db_user = session.query(User).get(user.id)
+        if db_user is None:
+            db_user = User(user.id, user.first_name)
+            session.add(db_user)
+
+        db_user.total_games += 1
+        session.commit()
+
         context.chat_data['not_played_words'] = ALL_WORDS.copy()
         context.chat_data['score'] = 0
 
@@ -91,6 +116,11 @@ def in_game_callback_handler(update: Update, context: CallbackContext)\
             f'Ваш итоговый счёт: {context.chat_data["score"]}.',
             reply_markup=MAIN_MENU_KEYBOARD_MARKUP,
         )
+
+        session = Session()
+        user = session.query(User).get(query.from_user.id)
+        user.update_best_score(score)
+        session.commit()
 
         del context.chat_data['score']
         del context.chat_data['not_played_words']
