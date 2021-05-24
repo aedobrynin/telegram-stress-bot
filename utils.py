@@ -57,3 +57,10 @@ def get_best_players() -> List[Tuple[str, int]]:
                .order_by(desc(User.best_score)).limit(3).all()
     session.close()
     return players
+
+
+def get_total_players_cnt() -> int:
+    session = Session()
+    total_players = session.query(User).count()
+    session.close()
+    return total_players

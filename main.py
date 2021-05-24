@@ -91,6 +91,8 @@ def main_menu_callback_handler(update: Update, context: CallbackContext)\
                             f'правильно, {total_cnt} всего.\n')
             message += '\n'
 
+        message += f'<b>Всего игроков:</b> {utils.get_total_players_cnt()}\n\n'
+
         if best_players:
             message += '⭐ <b>Топ игроков</b> ⭐\n'
             for (emoji, (name, score)) in zip('🥇🥈🥉', best_players):
