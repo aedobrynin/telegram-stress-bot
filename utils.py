@@ -54,6 +54,6 @@ def get_best_players() -> List[Tuple[str, int]]:
     session = Session()
     players =\
         session.query(User.name, User.best_score)\
-               .order_by(desc(User.best_score)).limit(5).all()
+               .order_by(desc(User.best_score)).limit(3).all()
     session.close()
     return players

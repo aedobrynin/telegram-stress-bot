@@ -93,16 +93,8 @@ def main_menu_callback_handler(update: Update, context: CallbackContext)\
 
         if best_players:
             message += '⭐ <b>Топ игроков</b> ⭐\n'
-            for (i, (name, score)) in enumerate(best_players):
-                if i == 0:
-                    message += '🥇'
-                elif i == 1:
-                    message += '🥈'
-                elif i == 2:
-                    message += '🥉'
-                else:
-                    message += f'{i + 1})'
-                message += f' {name} — {score}🏅\n'
+            for (emoji, (name, score)) in zip('🥇🥈🥉', best_players):
+                message += f'{emoji} {name} — {score}🏅\n'
 
         query.edit_message_text(message,
                                 parse_mode=ParseMode.HTML,
