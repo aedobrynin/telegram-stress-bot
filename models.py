@@ -52,6 +52,9 @@ class User(Base):
     def update_best_score(self, score: int) -> None:
         self.best_score = max(self.best_score, score)
 
+    def get_stats(self) -> dict:
+        return json.loads(self.stats_by_word_id_json)
+
     def update_stats(self, word_id: int, is_successful: bool) -> None:
         stats = json.loads(self.stats_by_word_id_json)
 
