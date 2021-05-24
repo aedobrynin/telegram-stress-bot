@@ -22,6 +22,11 @@ class Word(Base):
         return f'<Word({self.id}, {self.word}, {self.bad_variant}, '\
                 f'{self.success_count}, {self.total_count})>'
 
+    def update_stats(self, is_successful: bool):
+        self.total_count += 1
+        if is_successful:
+            self.success_count += 1
+
 
 class User(Base):
     __tablename__ = "users"
@@ -47,14 +52,14 @@ class User(Base):
     def update_best_score(self, score: int) -> None:
         self.best_score = max(self.best_score, score)
 
-    def update_stats(self, word_id: int, win: bool) -> None:
+    def update_stats(self, word_id: int, is_successful: bool) -> None:
         stats = json.loads(self.stats_by_word_id_json)
 
         if word_id not in stats:
             stats[word_id] = [0, 0]
 
         stats[word_id][1] += 1
-        if win:
+        if is_successful:
             stats[word_id][0] += 1
 
         self.stats_by_word_id_json = json.dumps(stats)

@@ -70,10 +70,12 @@ def in_game_callback_handler(update: Update, context: CallbackContext)\
         word_id = context.chat_data['current_word'].id
         session = Session()
         user = session.query(User).get(query.from_user.id)
+        word = session.query(Word).get(word_id)
 
         if query.data == context.chat_data['play_variant']['stress_state']:
             context.chat_data['score'] += 1
             user.update_stats(word_id, True)
+            word.update_stats(True)
             session.commit()
         else:
             score = context.chat_data['score']
@@ -87,6 +89,7 @@ def in_game_callback_handler(update: Update, context: CallbackContext)\
 
             user.update_best_score(score)
             user.update_stats(word_id, False)
+            word.update_stats(False)
             session.commit()
 
             del context.chat_data['score']
