@@ -6,11 +6,11 @@ from telegram.ext import Updater, CommandHandler, CallbackContext
 from telegram.ext import CallbackQueryHandler, ConversationHandler
 import utils
 from models import Session, Word, User
-
-
-MAIN_MENU_STATE, IN_GAME_STATE, START_GAME,\
-    SHOW_STATS, SHOW_RATING, GOOD_STRESS, BAD_STRESS = map(str, range(7))
-TELEGRAM_BOT_TOKEN = ''
+from config import TELEGRAM_BOT_TOKEN, MAIN_MENU_STATE, IN_GAME_STATE
+from config import SETTINGS_STATE, START_GAME, SHOW_STATS, SHOW_RATING
+from config import SHOW_SETTINGS, GOOD_STRESS, BAD_STRESS, CHANGE_NOTIF_SETTING
+from config import CHANGE_SHOW_IN_RATING_SETTING, GO_BACK, NOTIFICATION_TIME
+from config import MAIN_MENU_TEXT
 
 
 MAIN_MENU_KEYBOARD = [
@@ -20,6 +20,7 @@ MAIN_MENU_KEYBOARD = [
     ],
     [
         InlineKeyboardButton('Рейтинг 🏆', callback_data=SHOW_RATING),
+        InlineKeyboardButton('Настройки ⚙️', callback_data=SHOW_SETTINGS),
     ],
 ]
 MAIN_MENU_KEYBOARD_MARKUP = InlineKeyboardMarkup(MAIN_MENU_KEYBOARD)
@@ -41,15 +42,13 @@ __TMP_SESS.close()
 
 
 def start_handler(update: Update, _: CallbackContext) -> MAIN_MENU_STATE:
-    update.message.reply_text('Привет! Этот бот поможет тебе подготовиться '
-                              'к заданию 4 ЕГЭ по русскому языку.\n'
-                              'Обо всех ошибках сообщать @rov01yp.',
+    update.message.reply_text(MAIN_MENU_TEXT,
+                              parse_mode=ParseMode.HTML,
                               reply_markup=MAIN_MENU_KEYBOARD_MARKUP)
-
     return MAIN_MENU_STATE
 
 
-def restart_callback_handler(update: Update, context: CallbackContext) -> None:
+def restart_callback_handler(update: Update, _: CallbackContext) -> None:
     query = update.callback_query
     query.answer()
     query.edit_message_text('Кажется, что произошёл перезапуск бота.\n'
@@ -58,12 +57,13 @@ def restart_callback_handler(update: Update, context: CallbackContext) -> None:
 
 
 def main_menu_callback_handler(update: Update, context: CallbackContext)\
-        -> Union[MAIN_MENU_STATE, IN_GAME_STATE]:
+        -> Union[MAIN_MENU_STATE, IN_GAME_STATE, SETTINGS_STATE]:
     query = update.callback_query
     query.answer()
 
     if query.data == START_GAME:
         return in_game_callback_handler(update, context)
+
     if query.data == SHOW_STATS:
         session = Session()
         user = session.query(User).get(query.from_user.id)
@@ -87,7 +87,9 @@ def main_menu_callback_handler(update: Update, context: CallbackContext)\
         query.edit_message_text(message,
                                 parse_mode=ParseMode.HTML,
                                 reply_markup=MAIN_MENU_KEYBOARD_MARKUP)
-    elif query.data == SHOW_RATING:
+        return MAIN_MENU_STATE
+
+    if query.data == SHOW_RATING:
         top_mistakes = utils.get_top_five_globally_mistaken()
         best_players = utils.get_best_players()
 
@@ -109,8 +111,62 @@ def main_menu_callback_handler(update: Update, context: CallbackContext)\
         query.edit_message_text(message,
                                 parse_mode=ParseMode.HTML,
                                 reply_markup=MAIN_MENU_KEYBOARD_MARKUP)
+        return MAIN_MENU_STATE
+
+    if query.data == SHOW_SETTINGS:
+        session = Session()
+        user = session.query(User).get(query.from_user.id)
+        if user is None:
+            user = User(query.from_user.id, query.from_user.first_name)
+            session.add(user)
+
+        message = utils.get_settings_message(user)
+        keyboard_markup = utils.get_settings_keyboard_markup(user)
+
+        query.edit_message_text(message,
+                                parse_mode=ParseMode.HTML,
+                                reply_markup=keyboard_markup)
+
+        session.commit()
+        session.close()
+        return SETTINGS_STATE
 
     return MAIN_MENU_STATE
+
+
+def settings_callback_handler(update: Update, _: CallbackContext)\
+        -> Union[MAIN_MENU_STATE, SETTINGS_STATE]:
+    query = update.callback_query
+    query.answer()
+
+    if query.data == GO_BACK:
+        query.edit_message_text(MAIN_MENU_TEXT,
+                                parse_mode=ParseMode.HTML,
+                                reply_markup=MAIN_MENU_KEYBOARD_MARKUP)
+        return MAIN_MENU_STATE
+
+    if query.data in (CHANGE_NOTIF_SETTING, CHANGE_SHOW_IN_RATING_SETTING):
+        session = Session()
+
+        # User is present in database at this moment
+        user = session.query(User).get(query.from_user.id)
+
+        if query.data == CHANGE_NOTIF_SETTING:
+            user.daily_notification = not user.daily_notification
+        else:
+            user.show_in_rating = not user.show_in_rating
+
+        message = utils.get_settings_message(user)
+        keyboard_markup = utils.get_settings_keyboard_markup(user)
+
+        session.commit()
+        session.close()
+
+        query.edit_message_text(message,
+                                parse_mode=ParseMode.HTML,
+                                reply_markup=keyboard_markup)
+
+    return SETTINGS_STATE
 
 
 def in_game_callback_handler(update: Update, context: CallbackContext)\
@@ -225,6 +281,8 @@ def main() -> None:
                 [CallbackQueryHandler(main_menu_callback_handler)],
             IN_GAME_STATE:
                 [CallbackQueryHandler(in_game_callback_handler)],
+            SETTINGS_STATE:
+                [CallbackQueryHandler(settings_callback_handler)],
         },
         fallbacks=[],
         allow_reentry=True,
@@ -232,6 +290,12 @@ def main() -> None:
 
     dispatcher.add_handler(main_conversation_handler)
     dispatcher.add_handler(restart_handler)
+
+    updater.job_queue.run_daily(
+        utils.send_notification,
+        NOTIFICATION_TIME,
+        context=updater.bot
+    )
 
     updater.start_polling()
     updater.idle()

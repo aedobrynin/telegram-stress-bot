@@ -1,3 +1,9 @@
+"""
+Checks database validity.
+Checks if word.word and word.bad_variant are equal (case insensetive)
+Checks if there is only one uppercase letter in word.word and word.bad_variant
+"""
+
 import unittest
 from models import Session, Word
 

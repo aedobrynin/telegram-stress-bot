@@ -17,7 +17,7 @@ source env/bin/activate
 pip3 install -r requirements.txt
 ```
 
-2. Set your Telegram bot token in `main.py`
+2. Set your Telegram bot token in `config.py`
 
 3. Create database
 ```
