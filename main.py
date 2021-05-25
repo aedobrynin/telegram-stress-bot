@@ -6,7 +6,11 @@ from telegram.ext import Updater, CommandHandler, CallbackContext
 from telegram.ext import CallbackQueryHandler, ConversationHandler
 import utils
 from models import Session, Word, User
-from config import *
+from config import TELEGRAM_BOT_TOKEN, MAIN_MENU_STATE, IN_GAME_STATE
+from config import SETTINGS_STATE, START_GAME, SHOW_STATS, SHOW_RATING
+from config import SHOW_SETTINGS, GOOD_STRESS, BAD_STRESS, CHANGE_NOTIF_SETTING
+from config import CHANGE_SHOW_IN_RATING_SETTING, GO_BACK, NOTIFICATION_TIME
+from config import MAIN_MENU_TEXT
 
 
 MAIN_MENU_KEYBOARD = [
@@ -130,7 +134,7 @@ def main_menu_callback_handler(update: Update, context: CallbackContext)\
     return MAIN_MENU_STATE
 
 
-def settings_callback_handler(update: Update, context: CallbackContext)\
+def settings_callback_handler(update: Update, _: CallbackContext)\
         -> Union[MAIN_MENU_STATE, SETTINGS_STATE]:
     query = update.callback_query
     query.answer()
@@ -286,6 +290,12 @@ def main() -> None:
 
     dispatcher.add_handler(main_conversation_handler)
     dispatcher.add_handler(restart_handler)
+
+    updater.job_queue.run_daily(
+        utils.send_notification,
+        NOTIFICATION_TIME,
+        context=updater.bot
+    )
 
     updater.start_polling()
     updater.idle()

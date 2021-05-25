@@ -1,10 +1,14 @@
 from random import sample
-from typing import Set, Tuple, List
+from typing import Set, Tuple, List, Iterable, Any
+from itertools import islice
+from time import sleep
 from sqlalchemy import Float, desc
 from sqlalchemy.sql.expression import cast
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ParseMode
+from telegram.ext import CallbackContext
 from models import Session, Word, User
 from config import CHANGE_NOTIF_SETTING, CHANGE_SHOW_IN_RATING_SETTING, GO_BACK
+from config import NOTIFICATION_TEXT
 
 
 def get_word_id(ids: Set[int]) -> int:
@@ -113,3 +117,35 @@ def get_settings_keyboard_markup(user: User) -> InlineKeyboardMarkup:
     ]
 
     return InlineKeyboardMarkup(keyboard)
+
+
+def send_notification(context: CallbackContext) -> None:
+    """Sends notification message to users with User.daily_notification == True
+        It makes 5 messages per second in order to not exceed the rate limit"""
+
+    def make_chunks(iterable: Iterable[Any], size: int) ->\
+            Iterable[Tuple[Any, ...]]:
+        """Splits iterable into chuncks of provided size.
+            make_chunks([1, 2, 3, 4, 5, 6], 2) -> [(1, 2), (3, 4), (5, 6)].
+            make_chunks([1, 2], 3) -> [(1, 2)]
+        """
+        iterator = iter(iterable)
+        return iter(lambda: tuple(islice(iterator, size)), ())
+
+    session = Session()
+    send_to_ids =\
+        session.query(User.id).filter(User.daily_notification == 1).all()
+    session.close()
+    if not send_to_ids:
+        return None
+
+    message = ('До ЕГЭ осталось всего несколько дней, '
+               'самое время попрактиковаться!')
+    for chunk in make_chunks(*send_to_ids, 5):
+        for chat_id in chunk:
+            context.bot.send_message(
+                chat_id,
+                message,
+                parse_mode=ParseMode.HTML
+            )
+        sleep(1)
