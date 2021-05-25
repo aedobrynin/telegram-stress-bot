@@ -2,7 +2,9 @@ from random import sample
 from typing import Set, Tuple, List
 from sqlalchemy import Float, desc
 from sqlalchemy.sql.expression import cast
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from models import Session, Word, User
+from config import CHANGE_NOTIF_SETTING, CHANGE_SHOW_IN_RATING_SETTING, GO_BACK
 
 
 def get_word_id(ids: Set[int]) -> int:
@@ -65,3 +67,48 @@ def get_total_players_cnt() -> int:
     total_players = session.query(User).count()
     session.close()
     return total_players
+
+
+def get_settings_message(user: User) -> str:
+    message = (f'Сейчас вы {"" if user.show_in_rating else "не "}'
+               'отображаетесь в рейтинге.\nУ вас '
+               f'{"включено" if user.daily_notification else "выключено"} '
+               'ежедневное уведомление.')
+    return message
+
+
+def get_settings_keyboard_markup(user: User) -> InlineKeyboardMarkup:
+    change_show_in_rating_message: str
+    if user.show_in_rating:
+        change_show_in_rating_message = 'Не отображать меня в рейтинге ⛔'
+    else:
+        change_show_in_rating_message = 'Отображать меня в рейтинге 👁️'
+
+    change_notification_message: str
+    if user.daily_notification:
+        change_notification_message = 'Не присылать ежедневное уведомление 🔕'
+    else:
+        change_notification_message = 'Присылать ежедневное уведомление 🔔'
+
+    keyboard = [
+        [
+            InlineKeyboardButton(
+                change_show_in_rating_message,
+                callback_data=CHANGE_SHOW_IN_RATING_SETTING
+            ),
+        ],
+        [
+            InlineKeyboardButton(
+                change_notification_message,
+                callback_data=CHANGE_NOTIF_SETTING
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                'Назад 🔙',
+                callback_data=GO_BACK
+            ),
+        ],
+    ]
+
+    return InlineKeyboardMarkup(keyboard)
