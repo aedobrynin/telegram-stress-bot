@@ -1,5 +1,5 @@
 import json
-from sqlalchemy import Column, Integer, String, create_engine, text
+from sqlalchemy import Column, Integer, String, Boolean, text, create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
@@ -19,8 +19,7 @@ class Word(Base):
     total_count = Column(Integer, server_default=text('0'), nullable=False)
 
     def __repr__(self) -> str:
-        return f'<Word({self.id}, {self.word}, {self.bad_variant}, '\
-                f'{self.success_count}, {self.total_count})>'
+        return f'<Word with id {self.id}>'
 
     def update_stats(self, is_successful: bool) -> None:
         self.total_count += 1
@@ -38,16 +37,23 @@ class User(Base):
     stats_by_word_id_json =\
         Column(String, server_default=text("'{}'"), nullable=False)
 
+    daily_notification =\
+        Column(Boolean, server_default=text('1'), nullable=False)
+
+    show_in_rating =\
+        Column(Boolean, server_default=text('1'), nullable=False)
+
     def __init__(self, id: int, name: str) -> None:
         self.id = id
         self.name = name
         self.total_games = 0
         self.best_score = 0
         self.stats_by_word_id_json = json.dumps(dict())
+        self.daily_notification = True
+        self.show_in_rating = True
 
     def __repr__(self) -> str:
-        return f'<User({self.id}, {self.total_games}, {self.best_score}, '\
-                f'{self.lost_count_by_id_json})>'
+        return f'<User with id {self.id}>'
 
     def update_best_score(self, score: int) -> None:
         self.best_score = max(self.best_score, score)
