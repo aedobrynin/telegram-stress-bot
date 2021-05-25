@@ -1,12 +1,11 @@
 import json
-from sqlalchemy import Column, Integer, String, create_engine, text, MetaData
+from sqlalchemy import Column, Integer, String, create_engine, text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
 
 engine = create_engine('sqlite:///db.sqlite', echo=False)
-meta = MetaData(engine)
-Base = declarative_base(metadata=meta)
+Base = declarative_base()
 Session = sessionmaker(bind=engine)
 
 

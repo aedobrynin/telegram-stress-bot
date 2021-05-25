@@ -19,6 +19,10 @@ pip3 install -r requirements.txt
 
 2. Set your Telegram bot token in `main.py`
 
+3. Create database
+```
+alembic upgrade head
+```
 3. Run
 ```
 python3 main.py

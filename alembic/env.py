@@ -23,9 +23,8 @@ import sys
 currentdir = os.path.dirname(os.path.realpath(__file__))
 parentdir = os.path.dirname(currentdir)
 sys.path.append(parentdir)
-from models import *
+from models import Base
 target_metadata = Base.metadata
-print(target_metadata.sorted_tables)
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
 # my_important_option = config.get_main_option("my_important_option")
