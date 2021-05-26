@@ -288,11 +288,7 @@ def main() -> None:
     dispatcher.add_handler(main_conversation_handler)
     dispatcher.add_handler(restart_handler)
 
-    updater.job_queue.run_daily(
-        utils.send_notification,
-        NOTIFICATION_TIME,
-        context=updater.bot
-    )
+    updater.job_queue.run_daily(utils.send_notification, NOTIFICATION_TIME)
 
     updater.start_polling()
     updater.idle()

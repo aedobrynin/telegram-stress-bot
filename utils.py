@@ -132,6 +132,8 @@ def send_notification(context: CallbackContext) -> None:
         iterator = iter(iterable)
         return iter(lambda: tuple(islice(iterator, size)), ())
 
+    print(context)
+
     session = Session()
     send_to_ids = [data[0] for data in
                    session.query(User.id).filter(User.daily_notification == 1)
