@@ -133,13 +133,14 @@ def send_notification(context: CallbackContext) -> None:
         return iter(lambda: tuple(islice(iterator, size)), ())
 
     session = Session()
-    send_to_ids =\
-        session.query(User.id).filter(User.daily_notification == 1).all()
+    send_to_ids = [data[0] for data in
+                   session.query(User.id).filter(User.daily_notification == 1)
+                   .all()]
     session.close()
     if not send_to_ids:
         return None
 
-    for chunk in make_chunks(*send_to_ids, 5):
+    for chunk in make_chunks(send_to_ids, 5):
         for chat_id in chunk:
             context.bot.send_message(
                 chat_id,
