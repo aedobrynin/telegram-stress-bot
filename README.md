@@ -6,7 +6,9 @@ Tested on Python 3.8.5
 
 ![Game](https://user-images.githubusercontent.com/43320720/119373638-4bb81f80-bcc1-11eb-9ce4-40f23355858c.png)
 
-![Stats](https://user-images.githubusercontent.com/43320720/119373893-9cc81380-bcc1-11eb-96db-d307192305f6.png)
+![Rating](https://user-images.githubusercontent.com/43320720/119626096-88942b80-be13-11eb-89c3-391c70b2fef2.png)
+
+![Settings](https://user-images.githubusercontent.com/43320720/119626100-89c55880-be13-11eb-86ed-ae01e1ebde56.png)
 
 ## Running
 
