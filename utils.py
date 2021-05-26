@@ -28,7 +28,6 @@ def get_top_five_globally_mistaken() -> List[Tuple[str, float, int]]:
         .order_by(desc(Word.total_count))\
         .limit(5)\
         .all()
-
     session.close()
 
     ret_val = []
@@ -132,15 +131,13 @@ def send_notification(context: CallbackContext) -> None:
         iterator = iter(iterable)
         return iter(lambda: tuple(islice(iterator, size)), ())
 
-    print(context)
-
     session = Session()
     send_to_ids = [data[0] for data in
                    session.query(User.id).filter(User.daily_notification == 1)
                    .all()]
     session.close()
     if not send_to_ids:
-        return None
+        return
 
     for chunk in make_chunks(send_to_ids, 5):
         for chat_id in chunk:
