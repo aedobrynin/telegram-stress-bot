@@ -139,13 +139,11 @@ def send_notification(context: CallbackContext) -> None:
     if not send_to_ids:
         return None
 
-    message = ('До ЕГЭ осталось всего несколько дней, '
-               'самое время попрактиковаться!')
     for chunk in make_chunks(*send_to_ids, 5):
         for chat_id in chunk:
             context.bot.send_message(
                 chat_id,
-                message,
+                NOTIFICATION_TEXT,
                 parse_mode=ParseMode.HTML
             )
         sleep(1)

@@ -62,7 +62,7 @@ class User(Base):
         return json.loads(self.stats_by_word_id_json)
 
     def update_stats(self, word_id: int, is_successful: bool) -> None:
-        stats = json.loads(self.stats_by_word_id_json)
+        stats = self.get_stats()
 
         if word_id not in stats:
             stats[word_id] = [0, 0]

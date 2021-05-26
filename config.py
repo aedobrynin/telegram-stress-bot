@@ -16,3 +16,7 @@ NOTIFICATION_TEXT =\
 
 
 NOTIFICATION_TIME = time(9, 0, 0, 0, tzinfo=UTC)
+
+
+GAME_CHAT_DATA_KEYS =\
+    ('score', 'not_played_word_ids', 'play_variant', 'current_word_id')

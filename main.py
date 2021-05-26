@@ -10,7 +10,7 @@ from config import TELEGRAM_BOT_TOKEN, MAIN_MENU_STATE, IN_GAME_STATE
 from config import SETTINGS_STATE, START_GAME, SHOW_STATS, SHOW_RATING
 from config import SHOW_SETTINGS, GOOD_STRESS, BAD_STRESS, CHANGE_NOTIF_SETTING
 from config import CHANGE_SHOW_IN_RATING_SETTING, GO_BACK, NOTIFICATION_TIME
-from config import MAIN_MENU_TEXT
+from config import MAIN_MENU_TEXT, GAME_CHAT_DATA_KEYS
 
 
 MAIN_MENU_KEYBOARD = [
@@ -203,10 +203,8 @@ def in_game_callback_handler(update: Update, context: CallbackContext)\
             session.commit()
             session.close()
 
-            del context.chat_data['score']
-            del context.chat_data['not_played_word_ids']
-            del context.chat_data['play_variant']
-            del context.chat_data['current_word_id']
+            for key in GAME_CHAT_DATA_KEYS:
+                context.chat_data.pop(key, None)
 
             return MAIN_MENU_STATE
     else:
@@ -239,10 +237,9 @@ def in_game_callback_handler(update: Update, context: CallbackContext)\
         session.commit()
         session.close()
 
-        del context.chat_data['score']
-        del context.chat_data['not_played_word_ids']
-        del context.chat_data['play_variant']
-        del context.chat_data['current_word_id']
+        for key in GAME_CHAT_DATA_KEYS:
+            context.chat_data.pop(key, None)
+
         return MAIN_MENU_STATE
 
     current_word_id =\
