@@ -41,10 +41,13 @@ WORDS = dict((word.id, (word.word, word.bad_variant))
 __TMP_SESS.close()
 
 
-def start_handler(update: Update, _: CallbackContext) -> MAIN_MENU_STATE:
+def start_handler(update: Update, context: CallbackContext) -> MAIN_MENU_STATE:
     update.message.reply_text(MAIN_MENU_TEXT,
                               parse_mode=ParseMode.HTML,
                               reply_markup=MAIN_MENU_KEYBOARD_MARKUP)
+    for key in GAME_CHAT_DATA_KEYS:
+        context.chat_data.pop(key, None)
+
     return MAIN_MENU_STATE
 
 
