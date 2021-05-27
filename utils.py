@@ -21,8 +21,10 @@ def get_top_five_globally_mistaken() -> List[Tuple[str, int, int]]:
     session = Session()
     query =\
         session.query(Word.word, Word.success_count, Word.total_count)\
-        .filter(Word.total_count >= 1)\
-        .order_by(desc(Word.total_count - Word.success_count))\
+        .filter(
+            (Word.total_count >= 1) &
+            (Word.success_count != Word.total_count)
+        ).order_by(desc(Word.total_count - Word.success_count))\
         .order_by(desc(Word.total_count))\
         .limit(5)\
         .all()
