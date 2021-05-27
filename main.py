@@ -82,9 +82,10 @@ def main_menu_callback_handler(update: Update, context: CallbackContext)\
                 utils.get_top_five_locally_mistaken(user.get_stats())
             if top_mistakes:
                 message += '<b>Ваши самые частые ошибки:</b>\n'
-                for (i, (word, percent, total_cnt)) in enumerate(top_mistakes):
-                    message += (f'{i + 1}) Слово "{word}" — {percent}% '
-                                f'правильно, {total_cnt} всего.\n')
+                for (i, (word, success_cnt, total_cnt))\
+                        in enumerate(top_mistakes):
+                    message += (f'{i + 1}) Слово "{word}" — '
+                                f'угадано {success_cnt} из {total_cnt}.\n')
 
         session.close()
         query.edit_message_text(message,
@@ -99,9 +100,9 @@ def main_menu_callback_handler(update: Update, context: CallbackContext)\
         message = ""
         if top_mistakes:
             message += '<b>Самые популярные ошибки</b>\n'
-            for (i, (word, percent, total_cnt)) in enumerate(top_mistakes):
-                message += (f'{i + 1}) Слово "{word}" — {percent}% '
-                            f'правильно, {total_cnt} всего.\n')
+            for (i, (word, success_cnt, total_cnt)) in enumerate(top_mistakes):
+                message += (f'{i + 1}) Слово "{word}" — угадано {success_cnt} '
+                            f'из {total_cnt}.\n')
             message += '\n'
 
         message += f'<b>Всего игроков:</b> {utils.get_total_players_cnt()}\n\n'
@@ -295,6 +296,7 @@ def main() -> None:
 
     updater.start_polling()
     updater.idle()
+    updater.bot.send_message(263584556, 'The bot is down')
 
 
 if __name__ == "__main__":
