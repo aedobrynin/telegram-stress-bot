@@ -64,6 +64,7 @@ class User(Base):
     def update_stats(self, word_id: int, is_successful: bool) -> None:
         stats = self.get_stats()
 
+        word_id = str(word_id)
         if word_id not in stats:
             stats[word_id] = [0, 0]
 

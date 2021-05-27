@@ -238,9 +238,10 @@ def in_game_callback_handler(update: Update, context: CallbackContext)\
         context.chat_data['score'] = 0
 
     if not context.chat_data['not_played_word_ids']:
+        score = context.chat_data["score"]
         query.edit_message_text(
             '✨Поздравляем! Вы ответили на все вопросы правильно!✨\n'
-            f'<b>Ваш итоговый счёт:</b> {context.chat_data["score"]}🏅',
+            f'<b>Ваш итоговый счёт:</b> {score}🏅',
             parse_mode=ParseMode.HTML,
             reply_markup=MAIN_MENU_KEYBOARD_MARKUP,
         )
